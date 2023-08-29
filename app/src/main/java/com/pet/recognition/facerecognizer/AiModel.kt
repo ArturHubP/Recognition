@@ -12,7 +12,6 @@ import java.nio.channels.FileChannel
 import kotlin.math.sqrt
 
 object AiModel {
-    private const val FACE_NET_MODEL_PATH = "face_net_512.tflite"
     private const val ANTI_SPOOF_MODEL_PATH = "anti_spoof_model.tflite"
     private const val MOBILE_NET_MODEL_PATH = "mobile_net.tflite"
 
@@ -25,16 +24,6 @@ object AiModel {
     const val DEFAULT_SIMILARITY = 0.8f
     private var isRunning = false
 
-    val Context.faceNetInterpreter
-        get(): Interpreter {
-            val fileDescriptor = assets.openFd(FACE_NET_MODEL_PATH)
-            val inputStream = FileInputStream(fileDescriptor.fileDescriptor)
-            val fileChannel = inputStream.channel
-            val startOffset = fileDescriptor.startOffset
-            val declaredLength = fileDescriptor.declaredLength
-            val modelBuffer: MappedByteBuffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength)
-            return Interpreter(modelBuffer)
-        }
 
     val Context.mobileNetInterpreter
         get(): Interpreter {

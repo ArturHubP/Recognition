@@ -89,8 +89,6 @@ fun FaceRecognitionScreen(
     receiverViewModel: ReceiverViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
-    val view = LocalView.current
-    val scope = rememberCoroutineScope()
 
     val cameraPermissionState = rememberPermissionState(
         android.Manifest.permission.CAMERA
@@ -107,7 +105,9 @@ fun FaceRecognitionScreen(
             context.startActivity(settingsIntent)
         }
     }
-    AddFaceScreen(snackbarHostState, navigateToMainScreen = navigateToMainScreen)
+    if(cameraPermissionState.status.isGranted) {
+        AddFaceScreen(snackbarHostState, navigateToMainScreen = navigateToMainScreen)
+    }
 
 }
 
