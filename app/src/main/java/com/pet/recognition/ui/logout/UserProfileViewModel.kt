@@ -42,7 +42,6 @@ class UserProfileViewModel @Inject constructor(
     private fun getCurrentUser () {
         viewModelScope.launch {
             currentUserRepo.getCurrentUser().collect{
-                Log.d("CURRENT_USER",it.toString())
                 currentUser.value = it
             }
         }
