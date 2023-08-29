@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.BottomSheetState
+import androidx.compose.material.BottomSheetValue
 import androidx.compose.material.DrawerState
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.IconButton
@@ -26,7 +27,11 @@ import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.Button
@@ -65,6 +70,7 @@ import com.pet.recognition.remote.dto.Transaction
 import com.pet.recognition.ui.home.AddFaceViewModel
 import com.pet.recognition.ui.home.ReceiverViewModel
 import com.pet.recognition.ui.home.Scanner
+import com.pet.recognition.ui.logout.UserProfileViewModel
 import com.pet.recognition.ui.util.Screen
 import com.pet.recognition.ui.util.beautifulDate
 import kotlinx.coroutines.delay
@@ -76,23 +82,38 @@ import kotlinx.coroutines.launch
 fun MainScreen(
     navigateToScanner:() ->Unit,
     viewModel: MainViewModel = hiltViewModel(),
-    receiverViewModel: ReceiverViewModel = hiltViewModel()
+    userProfileViewModel: UserProfileViewModel = hiltViewModel()
 ){
-    val sheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
+    val sheetState = rememberModalBottomSheetState(
+        initialValue = ModalBottomSheetValue.Hidden,
+        confirmValueChange = {
+            // Prevent collapsing by swipe down gesture
+            it != ModalBottomSheetValue.Hidden
+        })
     val balancAmount by viewModel.balanceAmount.collectAsState()
     val currentUser by viewModel.currentUser.collectAsState()
     val transactionResponse by viewModel.transactionResponse.collectAsState()
+    val balanceResponse by viewModel.balanceResponse.collectAsState()
     val processedImage by viewModel.image.collectAsState(initial = null)
     var receiverImage by remember{ mutableStateOf(ImageBitmap(50,50)) }
     val receiverUser by viewModel.receiverUser.collectAsState()
+    val isRefresh by remember{ mutableStateOf(false) }
+    val pullRefreshState = rememberPullRefreshState(refreshing = isRefresh, onRefresh = { viewModel.getBalance() })
     var moneyForSend by remember{ mutableStateOf("0") }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     LaunchedEffect(transactionResponse){
         if(transactionResponse is ApiResponse.Success){
             Toast.makeText(context,"Деньги успешно доставлены",Toast.LENGTH_SHORT).show()
+            viewModel.cleanImage()
             viewModel.getBalance()
             sheetState.hide()
+        }
+    }
+    LaunchedEffect(balanceResponse){
+        if(balanceResponse is ApiResponse.Success){
+            delay(1000)
+            Toast.makeText(context,"Баланс обновлен", Toast.LENGTH_SHORT).show()
         }
     }
     LaunchedEffect(Unit){
@@ -117,7 +138,6 @@ fun MainScreen(
                 modifier = Modifier
                     .padding(horizontal = 20.dp, vertical = 16.dp)
                     .fillMaxWidth(),
-
                 verticalArrangement = Arrangement.spacedBy(8.dp)
 
             ) {
@@ -128,6 +148,7 @@ fun MainScreen(
                     IconButton(onClick = {
                         scope.launch {
                             sheetState.hide()
+                            viewModel.cleanImage()
                         }
                 }){
                         Icon(imageVector = ImageVector.vectorResource(R.drawable.close), contentDescription = null)
@@ -238,35 +259,49 @@ fun MainScreen(
             }
         }
     ){
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .pullRefresh(pullRefreshState)){
         ConstraintLayout(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
         ) {
+
             val (topBar, cash, button) = createRefs()
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .padding(20.dp)
                     .constrainAs(topBar) {
                         top.linkTo(parent.top)
                         start.linkTo(parent.start)
                         end.linkTo(parent.end)
-                    }
+                    },
+                verticalAlignment = Alignment.CenterVertically
             ){
 
-                    Image(painter = painterResource(id = R.drawable.ic_launcher_foreground), contentDescription = null,
+                    Image(painter = painterResource(id = R.drawable.small_photo), contentDescription = null,
                         Modifier
-                            .size(28.dp)
+                            .size(40.dp)
+                            .padding(end = 16.dp)
                             .clip(CircleShape))
-                    Text(text = currentUser?.name?:"")
+                    Text(text = currentUser?.name?:"",
+                        style = TextStyle(
+                            fontSize = 22.sp,
+                            lineHeight = 28.sp,
+                            fontWeight = FontWeight(600),
+                            color = Color(0xFF000000),
+                        ))
                     Row(
                         modifier = Modifier.weight(1f),
                         horizontalArrangement = Arrangement.End
                     ) {
                         IconButton(
                             onClick = {
-
+                                userProfileViewModel.startLogout()
                             }
                         ){
-                            Icon(imageVector = Icons.Default.MoreVert, contentDescription = null,Modifier.weight(1f))
+                            Icon(imageVector = Icons.Default.ExitToApp, contentDescription = null,Modifier.weight(1f))
                         }
                     }
 
@@ -283,7 +318,10 @@ fun MainScreen(
                         end.linkTo(parent.end, 20.dp)
                     }
                     .background(Color.White)
-                    .clip(RoundedCornerShape(20.dp)),
+                    .clip(RoundedCornerShape(20.dp))
+                    .clickable {
+                        viewModel.getBalance()
+                    },
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Image(
@@ -330,6 +368,11 @@ fun MainScreen(
             }
 
         }
+            PullRefreshIndicator(refreshing = isRefresh, state = pullRefreshState)
+    }
+
+
+
     }
 
 }

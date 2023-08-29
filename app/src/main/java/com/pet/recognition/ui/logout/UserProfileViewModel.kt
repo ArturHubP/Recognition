@@ -59,15 +59,10 @@ class UserProfileViewModel @Inject constructor(
         }
     }
 
-    fun startLogout(delete: Boolean) = baseRequest(
+    fun startLogout() = baseRequest(
         _logoutResponse,
         coroutinesErrorHandler
     ) {
-        if(delete){
-            authRepository.deleteAccount()
-        }else{
-            authRepository.logout(deviceId = deviceId.value)
-        }
-
+        authRepository.logout()
     }
 }

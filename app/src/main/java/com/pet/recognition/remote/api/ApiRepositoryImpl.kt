@@ -13,8 +13,8 @@ class ApiRepositoryImpl(
     private val api: PetConnectApi,
     private val apiRequestHelper: ApiRequestHelper
 ): ApiRepository {
-    override fun logout(deviceId: String) = apiRequestHelper.apiRequestFlow {
-        api.logout(deviceId)
+    override fun logout() = apiRequestHelper.apiRequestFlow {
+        api.logout()
     }
 
     override fun signIn(

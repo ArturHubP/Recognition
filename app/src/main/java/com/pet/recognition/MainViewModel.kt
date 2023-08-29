@@ -18,6 +18,7 @@ import com.pet.recognition.remote.dto.UserDto
 import com.pet.recognition.remote.token.TokenProvider
 import com.pet.recognition.ui.base.BaseViewModel
 import com.pet.recognition.ui.base.CoroutinesErrorHandler
+import com.pet.recognition.ui.logout.UserProfileViewModel
 import com.pet.recognition.ui.util.SnackbarMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
@@ -55,10 +56,8 @@ class MainViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            _bioResponse.collect{
-                if(it is ApiResponse.Success){
-                    receiverUser.value = it.data
-                }
+            image.collect{
+                processedImage.value = it
             }
         }
         viewModelScope.launch {
@@ -81,13 +80,9 @@ class MainViewModel @Inject constructor(
                 }
             }
         }
-        viewModelScope.launch {
-            image.collect{
-                processedImage.value = it
-            }
-        }
         getUser()
         getUserFromCache()
+        getReceiver()
     }
 
 
@@ -155,4 +150,18 @@ class MainViewModel @Inject constructor(
         apiService.maketransaction(transaction)
     }
 
+    fun cleanImage(){
+        tokenProvider.cleanImage()
+        processedImage.value = null
+    }
+
+    fun getReceiver(){
+        viewModelScope.launch {
+            _bioResponse.collect{
+                if(it is ApiResponse.Success){
+                    receiverUser.value = it.data
+                }
+            }
+        }
+    }
 }

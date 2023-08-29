@@ -12,7 +12,7 @@ import okhttp3.ResponseBody
 
 
 interface ApiRepository {
-    fun logout(deviceId: String): Flow<ApiResponse<ResponseBody>>
+    fun logout(): Flow<ApiResponse<ResponseBody>>
 
 
     fun signIn(deviceId: String,token: String ,signDto: SignInDto): Flow<ApiResponse<JwtDto>>

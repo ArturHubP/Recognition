@@ -44,7 +44,7 @@ interface PetConnectApi {
     suspend fun getBalance(): Response<Amount>
 
     @POST("/auth/logout")
-    suspend fun logout(@Header("deviceId") deviceId: String): Response<ResponseBody>
+    suspend fun logout(): Response<ResponseBody>
 
     @DELETE("/users/")
     suspend fun deleteAccount(): Response<ResponseBody>

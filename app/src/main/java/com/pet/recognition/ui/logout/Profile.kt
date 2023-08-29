@@ -177,7 +177,7 @@ fun ProfileView(
                         ) {
 
                             TextButton(onClick = {
-                                viewModel.startLogout(delete = false)
+                                viewModel.startLogout()
 
                             }) {
                                 Text(
@@ -222,7 +222,7 @@ fun ProfileView(
             text = { Text(text = "Вы уверены, что действительно хотите удалить Аккаунт?") },
             confirmButton = {
                 TextButton(onClick = {
-                    viewModel.startLogout(delete = true)
+                    viewModel.startLogout()
                 }) {
                     Text(text = "Удалить", color = MaterialTheme.colorScheme.error)
                 }},

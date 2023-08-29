@@ -20,8 +20,8 @@ class AuthRepository @Inject constructor(
         apiService.signIn(auth)
     }
 
-    fun logout(deviceId: String) = apiRequestHelper.apiRequestFlow {
-        apiService.logout(deviceId)
+    fun logout() = apiRequestHelper.apiRequestFlow {
+        apiService.logout()
     }
 
     fun deleteAccount() = apiRequestHelper.apiRequestFlow {
